@@ -1,0 +1,6 @@
+.env*
+.git
+node_modules
+test
+server.mjs
+README.md

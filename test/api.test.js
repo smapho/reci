@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import handler from '../api/receipts.js';
+process.env.SUPABASE_URL='https://example.supabase.co';
+process.env.SUPABASE_SERVICE_ROLE_KEY='test';
+process.env.APP_PASSWORD='test-password';
+async function invoke(method,body,password='test-password') { const res={headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.code=n;return this;},json(body){this.body=body;return this;}}; await handler({method,headers:{'x-app-password':password},body},res); return res; }
+const payload=()=>({receipt:{merchant_name:'テスト店',purchase_date:'2026-09-06',total_amount:100,notes:'OCR'},items:[{name:'商品',quantity:1,amount:100}],image:{type:'image/jpeg',data:Buffer.from([255,216,255,224]).toString('base64')}});
+test('API rejects absent password and invalid inputs',async()=>{assert.equal((await invoke('GET',undefined,'')).code,401);assert.equal((await invoke('POST',{})).code,400);const p=payload();p.items[0].quantity=-1;assert.equal((await invoke('POST',p)).code,400);});
+test('writes existing schema and image URL',async()=>{const old=globalThis.fetch;const calls=[];globalThis.fetch=async(url,opts)=>{calls.push({url,opts});return new Response(JSON.stringify(url.endsWith('/rest/v1/receipts')?[{id:'test-id'}]:{}));};try{assert.equal((await invoke('POST',payload())).code,201);const row=JSON.parse(calls[1].opts.body);assert.equal(row.merchant_name,'テスト店');assert.match(row.image_url,/\/storage\/v1\/object\/public\/receipt-images\//);assert.equal(row.store_name,undefined);assert.equal(JSON.parse(calls[2].opts.body)[0].receipt_id,'test-id');}finally{globalThis.fetch=old;}});
+test('item failure removes parent and uploaded photo',async()=>{const old=globalThis.fetch;const calls=[];globalThis.fetch=async(url,opts)=>{calls.push({url,opts});if(url.endsWith('/rest/v1/receipt_items')) return new Response('{}',{status:400});return new Response(JSON.stringify(url.endsWith('/rest/v1/receipts')?[{id:'test-id'}]:{}));};try{assert.equal((await invoke('POST',payload())).code,500);assert.equal(calls[3].opts.method,'DELETE');assert.match(calls[3].url,/receipts\?id=eq.test-id/);assert.equal(calls[4].opts.method,'DELETE');}finally{globalThis.fetch=old;}});
