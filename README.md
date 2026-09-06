@@ -23,7 +23,8 @@ http://localhost:3000 を開き、接続設定で APP_PASSWORD と同じパス�
 | 変数 | 内容 |
 | --- | --- |
 | SUPABASE_URL | codex2と同じSupabase Project URL。NEXT_PUBLIC_SUPABASE_URLも利用可 |
-| SUPABASE_SERVICE_ROLE_KEY | 同じプロジェクトのservice_roleキー。サーバーでのみ使用 |
+| SUPABASE_SECRET_KEY | Supabase DashboardのSecret key（`sb_secret_...`）。サーバーでのみ使用 |
+| SUPABASE_SERVICE_ROLE_KEY | 旧形式のservice_roleキーを使う場合のみ。`SUPABASE_SECRET_KEY`を優先 |
 | APP_PASSWORD | 必須。十分に長い私用アプリの共通パスワード |
 
 発行されたHTTPS URLをスマホのSafari/Chromeで開いてください。カメラ撮影と写真選択に対応しています。パスワードはタブのsessionStorageに保存します。APIキーを画面へ入力する必要はありません。

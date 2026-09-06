@@ -3,14 +3,18 @@ import { timingSafeEqual, randomUUID } from 'node:crypto';
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   const url = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/$/, '');
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Supabase's current Secret key (sb_secret_...) is preferred. The legacy
+  // service_role JWT remains supported for existing deployments.
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const usesSecretKey = key?.startsWith('sb_secret_');
   const password = process.env.APP_PASSWORD;
   if (!url || !key || !password) return res.status(503).json({ error: 'VercelにSupabase接続情報とAPP_PASSWORDを設定してください。' });
   const actual = Buffer.from(String(req.headers['x-app-password'] || ''));
   const expected = Buffer.from(password);
   if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return res.status(401).json({ error: '設定からアプリのパスワードを入力してください。' });
   const call = async (path, method = 'GET', body, extra = {}) => {
-    const response = await fetch(`${url}${path}`, { method, headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', ...extra }, body: body === undefined ? undefined : Buffer.isBuffer(body) ? body : JSON.stringify(body), signal: AbortSignal.timeout(20000) });
+    const authHeaders = usesSecretKey ? { apikey: key } : { apikey: key, Authorization: `Bearer ${key}` };
+    const response = await fetch(`${url}${path}`, { method, headers: { ...authHeaders, 'Content-Type': 'application/json', ...extra }, body: body === undefined ? undefined : Buffer.isBuffer(body) ? body : JSON.stringify(body), signal: AbortSignal.timeout(20000) });
     const text = await response.text();
     if (!response.ok) throw new Error(`Supabase処理に失敗しました (${response.status})`);
     return text ? JSON.parse(text) : null;
