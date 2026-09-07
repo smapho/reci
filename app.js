@@ -40,9 +40,9 @@ function parse(text) {
 $('ocr').onclick = async () => {
   if (!selected || busy) return; lock(true); $('progress').textContent = '読み取りを準備しています…';
   let worker;
-  try { worker = await Tesseract.createWorker('jpn+eng', 1, {logger:m => { if (m.status === 'recognizing text') $('progress').textContent = `読み取り中 ${Math.round(m.progress*100)}%`; }}); const {data} = await worker.recognize(selected); parse(data.text); $('review').hidden = false; $('review').scrollIntoView({behavior:'smooth'}); toast('読み取りが完了しました。内容を確認してください。'); }
+  try { $('progress').textContent = 'Geminiでレシートを解析しています…'; const {result:r} = await api('POST', {image:await imagePayload()}); $('merchant').value=r.merchant_name||''; $('date').value=r.purchase_date||''; $('total').value=r.total_amount??''; $('notes').value=r.notes||''; $('items').replaceChildren(); (r.items||[]).forEach(addItem); if (!(r.items||[]).length) addItem(); $('review').hidden=false; $('review').scrollIntoView({behavior:'smooth'}); toast('Geminiの読み取りが完了しました。内容を確認してください。'); }
   catch { toast('読み取れませんでした。画像を選び直すか手入力してください。'); }
-  finally { if (worker) await worker.terminate().catch(() => {}); $('progress').textContent = ''; lock(false); }
+  finally { $('progress').textContent = ''; lock(false); }
 };
 async function imagePayload() {
   const img = new Image(); img.src = previewUrl; await img.decode(); const scale = Math.min(1,2200/Math.max(img.width,img.height));
