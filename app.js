@@ -20,7 +20,9 @@ async function setFile(file) {
   $('preview').src = url;
   $('preview').hidden = false;
   $('fileName').textContent = file.name;
-  $('progress').textContent = '画像を読み込みました。読み取りボタンを押してください。';
+  $('progress').textContent = '画像を読み込みました。Geminiで読み取りを開始します…';
+  // Start analysis automatically after a camera/photo selection.
+  setTimeout(() => $('ocr').click(), 0);
 }
 function addItem(item = {}) {
   const row = document.createElement('div'); row.className = 'item-row';
