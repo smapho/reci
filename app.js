@@ -6,7 +6,8 @@ function toast(text) { $('toast').textContent = text; $('toast').hidden = false;
 function lock(value) { busy = value; for (const id of ['choose','camera','manual','save','add']) $(id).disabled = value; $('ocr').disabled = value || !selected; }
 async function api(method = 'GET', body, path = '/api/receipts') {
   const response = await fetch(path, { method, headers: { 'Content-Type':'application/json', 'x-app-password':localStorage.getItem('reci.password') || '' }, body: body ? JSON.stringify(body) : undefined });
-  const data = await response.json().catch(() => ({error:'APIを利用できません。npm run dev またはVercelで開いてください。'}));
+  const raw = await response.text();
+  let data; try { data = raw ? JSON.parse(raw) : {}; } catch { data = {error:`APIエラー (${response.status})`}; }
   if (!response.ok) throw new Error(data.error || '通信に失敗しました'); return data;
 }
 async function setFile(file) {
