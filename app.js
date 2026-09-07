@@ -43,7 +43,7 @@ $('ocr').onclick = async () => {
   if (!selected || busy) return; lock(true); $('progress').textContent = '読み取りを準備しています…';
   let worker;
   try { $('progress').textContent = 'Geminiでレシートを解析しています…'; const {result:r} = await api('POST', {image:await imagePayload()}, '/api/analyze'); $('merchant').value=r.merchant_name||''; $('date').value=r.purchase_date||''; $('total').value=r.total_amount??''; $('notes').value=r.notes||''; $('items').replaceChildren(); (r.items||[]).forEach(addItem); if (!(r.items||[]).length) addItem(); $('review').hidden=false; $('review').scrollIntoView({behavior:'smooth'}); toast('Geminiの読み取りが完了しました。内容を確認してください。'); }
-  catch (error) { try { $('progress').textContent = 'Geminiに接続できないため、端末内OCRで読み取っています…'; const worker=await Tesseract.createWorker('jpn+eng'); const {data}=await worker.recognize(selected); await worker.terminate(); parse(data.text); $('review').hidden=false; $('review').scrollIntoView({behavior:'smooth'}); toast('端末内OCRで読み取りました。内容を確認してください。'); } catch { toast(error.message || '読み取りに失敗しました。'); } }
+  catch (error) { toast(error.message || 'Geminiの読み取りに失敗しました。手入力をご利用ください。'); $('manual').click(); }
   catch { toast('読み取れませんでした。画像を選び直すか手入力してください。'); }
   finally { $('progress').textContent = ''; lock(false); }
 };
