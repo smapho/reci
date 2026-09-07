@@ -9,9 +9,11 @@ export default async function handler(req, res) {
   const usesSecretKey = key?.startsWith('sb_secret_');
   const password = process.env.APP_PASSWORD;
   if (!url || !key) return res.status(503).json({ error: 'VercelにSupabase接続情報を設定してください。' });
-  const actual = Buffer.from(String(req.headers['x-app-password'] || ''));
-  const expected = Buffer.from(password);
-  if (password && (actual.length !== expected.length || !timingSafeEqual(actual, expected))) return res.status(401).json({ error: '設定からアプリのパスワードを入力してください。' });
+  if (password) {
+    const actual = Buffer.from(String(req.headers['x-app-password'] || ''));
+    const expected = Buffer.from(password);
+    if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return res.status(401).json({ error: '設定からアプリのパスワードを入力してください。' });
+  }
   const call = async (path, method = 'GET', body, extra = {}) => {
     const authHeaders = usesSecretKey ? { apikey: key } : { apikey: key, Authorization: `Bearer ${key}` };
     const response = await fetch(`${url}${path}`, { method, headers: { ...authHeaders, 'Content-Type': 'application/json', ...extra }, body: body === undefined ? undefined : Buffer.isBuffer(body) ? body : JSON.stringify(body), signal: AbortSignal.timeout(20000) });
