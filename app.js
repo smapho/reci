@@ -21,6 +21,7 @@ async function setFile(file) {
   $('preview').src = url;
   $('preview').hidden = false;
   $('fileName').textContent = file.name;
+  $('ocr').disabled = false;
   $('progress').textContent = '画像を読み込みました。Geminiで読み取りを開始します…';
   // Start analysis automatically after a camera/photo selection.
   setTimeout(() => $('ocr').click(), 0);
