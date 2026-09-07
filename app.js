@@ -12,11 +12,15 @@ async function api(method = 'GET', body) {
 async function setFile(file) {
   if (busy || !file) return;
   if (!file.type.startsWith('image/') || file.size > 20*1024*1024) return toast('20MB以下の画像を選んでください。');
-  lock(true);
   const url = URL.createObjectURL(file);
-  try { const img = new Image(); img.src = url; await img.decode(); if (previewUrl) URL.revokeObjectURL(previewUrl); previewUrl = url; selected = file; $('preview').src = url; $('preview').hidden = false; $('fileName').textContent = file.name; }
-  catch { URL.revokeObjectURL(url); toast('この画像を開けません。JPEG・PNGで選び直してください。'); }
-  finally { lock(false); }
+  if (previewUrl) URL.revokeObjectURL(previewUrl);
+  previewUrl = url;
+  selected = file;
+  // Show the camera result immediately. Image decoding is deferred until OCR/save.
+  $('preview').src = url;
+  $('preview').hidden = false;
+  $('fileName').textContent = file.name;
+  $('progress').textContent = '画像を読み込みました。読み取りボタンを押してください。';
 }
 function addItem(item = {}) {
   const row = document.createElement('div'); row.className = 'item-row';
