@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   const password = process.env.APP_PASSWORD;
-  if (!password || req.headers['x-app-password'] !== password) return res.status(401).json({ error: 'パスワードが違います。' });
+  if (password && req.headers['x-app-password'] !== password) return res.status(401).json({ error: 'パスワードが違います。' });
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) return res.status(503).json({ error: 'GOOGLE_GENERATIVE_AI_API_KEY が未設定です。' });
   const image = req.body?.image;
