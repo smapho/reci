@@ -4,8 +4,8 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp
 const money = n => `¥${Number(n || 0).toLocaleString('ja-JP')}`;
 function toast(text) { $('toast').textContent = text; $('toast').hidden = false; clearTimeout(timer); timer = setTimeout(() => $('toast').hidden = true, 7000); }
 function lock(value) { busy = value; for (const id of ['choose','camera','manual','save','add']) $(id).disabled = value; $('ocr').disabled = value || !selected; }
-async function api(method = 'GET', body) {
-  const response = await fetch('/api/receipts', { method, headers: { 'Content-Type':'application/json', 'x-app-password':localStorage.getItem('reci.password') || '' }, body: body ? JSON.stringify(body) : undefined });
+async function api(method = 'GET', body, path = '/api/receipts') {
+  const response = await fetch(path, { method, headers: { 'Content-Type':'application/json', 'x-app-password':localStorage.getItem('reci.password') || '' }, body: body ? JSON.stringify(body) : undefined });
   const data = await response.json().catch(() => ({error:'APIを利用できません。npm run dev またはVercelで開いてください。'}));
   if (!response.ok) throw new Error(data.error || '通信に失敗しました'); return data;
 }
@@ -42,7 +42,7 @@ function parse(text) {
 $('ocr').onclick = async () => {
   if (!selected || busy) return; lock(true); $('progress').textContent = '読み取りを準備しています…';
   let worker;
-  try { $('progress').textContent = 'Geminiでレシートを解析しています…'; const {result:r} = await api('POST', {image:await imagePayload()}); $('merchant').value=r.merchant_name||''; $('date').value=r.purchase_date||''; $('total').value=r.total_amount??''; $('notes').value=r.notes||''; $('items').replaceChildren(); (r.items||[]).forEach(addItem); if (!(r.items||[]).length) addItem(); $('review').hidden=false; $('review').scrollIntoView({behavior:'smooth'}); toast('Geminiの読み取りが完了しました。内容を確認してください。'); }
+  try { $('progress').textContent = 'Geminiでレシートを解析しています…'; const {result:r} = await api('POST', {image:await imagePayload()}, '/api/analyze'); $('merchant').value=r.merchant_name||''; $('date').value=r.purchase_date||''; $('total').value=r.total_amount??''; $('notes').value=r.notes||''; $('items').replaceChildren(); (r.items||[]).forEach(addItem); if (!(r.items||[]).length) addItem(); $('review').hidden=false; $('review').scrollIntoView({behavior:'smooth'}); toast('Geminiの読み取りが完了しました。内容を確認してください。'); }
   catch { toast('読み取れませんでした。画像を選び直すか手入力してください。'); }
   finally { $('progress').textContent = ''; lock(false); }
 };
