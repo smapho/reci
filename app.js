@@ -47,10 +47,10 @@ $('ocr').onclick = async () => {
   finally { $('progress').textContent = ''; lock(false); }
 };
 async function imagePayload() {
-  const img = new Image(); img.src = previewUrl; await img.decode(); const scale = Math.min(1,2200/Math.max(img.width,img.height));
+  const img = new Image(); img.src = previewUrl; await img.decode(); const scale = Math.min(1,1600/Math.max(img.width,img.height));
   const canvas = document.createElement('canvas'); canvas.width = Math.round(img.width*scale); canvas.height = Math.round(img.height*scale);
   const ctx = canvas.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0,canvas.width,canvas.height);
-  const data = canvas.toDataURL('image/jpeg',.85).split(',')[1]; if (data.length > 4000000) throw new Error('画像が大きすぎます。範囲を絞って撮影してください。'); return {type:'image/jpeg',data};
+  const data = canvas.toDataURL('image/jpeg',.72).split(',')[1]; if (data.length > 3000000) throw new Error('画像が大きすぎます。範囲を絞って撮影してください。'); return {type:'image/jpeg',data};
 }
 $('form').onsubmit = async event => {
   event.preventDefault(); if (busy) return; if (!selected) return toast('保存する画像を選んでください。'); lock(true);
