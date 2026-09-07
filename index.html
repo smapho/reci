@@ -1,5 +1,105 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f5f2ea"><title>reci · レシート記録</title><link rel="stylesheet" href="/styles.css"></head>
-<body><header><a href="/" class="brand">▤ reci</a><button id="settings">接続設定</button></header><main><section class="intro"><p class="eyebrow">YOUR EVERYDAY RECEIPTS</p><h1>日々の買い物を、<br><em>きちんと記録。</em></h1><p>撮って、読み取って、保存する。<br>レシートから始める、かんたんな買い物の記録。</p></section><section class="panel"><div class="heading"><h2><small>01 / CAPTURE</small>レシートを追加</h2><span id="status">未接続</span></div><div id="drop"><span class="illustration">▤</span><h3>レシートを撮影・選択</h3><p>写真をここにドロップすることもできます</p><div class="actions"><button id="choose" class="primary">画像を選ぶ</button><button id="camera">カメラで撮る</button></div><input id="file" type="file" accept="image/*" hidden><input id="cameraFile" type="file" accept="image/*" capture="environment" hidden></div><img id="preview" alt="選択したレシート" hidden><p id="fileName"></p><button id="ocr" class="primary wide" disabled>画像を読み取る →</button><p id="progress" role="status"></p><button id="manual">手入力する</button><p class="note">日本語OCRで読み取ります。結果は保存前に確認・修正してください。</p></section>
-<section id="review" class="panel" hidden><h2><small>02 / REVIEW</small>内容を確認</h2><form id="form"><div class="grid"><label>店舗名<input id="merchant" required maxlength="300"></label><label>購入日<input id="date" type="date"></label><label>合計金額（円）<input id="total" type="number" step="1" required></label></div><div class="heading"><h3>商品明細</h3><button id="add" type="button">＋ 明細を追加</button></div><p class="note">商品名 / 数量 / 金額（円）</p><div id="items"></div><label>読み取りテキスト・メモ<textarea id="notes" rows="5"></textarea></label><button id="save" class="primary wide" type="submit">レシートを保存 ↗</button></form></section>
-<section class="history"><div class="heading"><h2><small>03 / HISTORY</small>保存済みレシート</h2><button id="refresh">更新 ↻</button></div><p class="note">最新100件。レシートをタップすると明細が開きます。</p><div id="list"></div></section></main><dialog id="dialog"><div class="heading"><h2>接続設定</h2><button id="close" aria-label="閉じる">×</button></div><p>アプリのパスワードを入力してください。</p><form id="login"><label>パスワード<input id="password" type="password" autocomplete="current-password" required></label><button class="primary wide">接続する</button></form></dialog><div id="toast" role="status" aria-live="polite" hidden></div><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script><script type="module" src="/app.js"></script></body></html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f2ea">
+<title>reci · レシート記録</title>
+<link rel="stylesheet" href="/styles.css">
+<style>.actions label{font-size:13px;font-weight:600;border:1px solid #d2dacd;border-radius:8px;padding:12px 18px;background:#edf1e7;color:#253c34;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center}.actions label.primary{background:#294e3e;color:#fff;border-color:#294e3e}@media(max-width:600px){.actions label{flex:1}}</style>
+</head>
+<body>
+<header>
+<a href="/" class="brand">▤ reci</a>
+<button id="settings">接続設定</button>
+</header>
+<main>
+<section class="intro">
+<p class="eyebrow">YOUR EVERYDAY RECEIPTS</p>
+<h1>日々の買い物を、<br>
+<em>きちんと記録。</em>
+</h1>
+<p>撮って、読み取って、保存する。<br>レシートから始める、かんたんな買い物の記録。</p>
+</section>
+<section class="panel">
+<div class="heading">
+<h2>
+<small>01 / CAPTURE</small>レシートを追加</h2>
+<span id="status">未接続</span>
+</div>
+<div id="drop">
+<span class="illustration">▤</span>
+<h3>レシートを撮影・選択</h3>
+<p>写真をここにドロップすることもできます</p>
+<div class="actions">
+<label id="choose" class="primary" for="file">画像を選ぶ</label>
+<label id="camera" for="cameraFile">カメラで撮る</label>
+</div>
+<input id="file" type="file" accept="image/*" hidden>
+<input id="cameraFile" type="file" accept="image/*" capture="environment" hidden>
+</div>
+<img id="preview" alt="選択したレシート" hidden>
+<p id="fileName">
+</p>
+<button id="ocr" class="primary wide" disabled>画像を読み取る →</button>
+<p id="progress" role="status">
+</p>
+<button id="manual">手入力する</button>
+<p class="note">日本語OCRで読み取ります。結果は保存前に確認・修正してください。</p>
+</section>
+<section id="review" class="panel" hidden>
+<h2>
+<small>02 / REVIEW</small>内容を確認</h2>
+<form id="form">
+<div class="grid">
+<label>店舗名<input id="merchant" required maxlength="300">
+</label>
+<label>購入日<input id="date" type="date">
+</label>
+<label>合計金額（円）<input id="total" type="number" step="1" required>
+</label>
+</div>
+<div class="heading">
+<h3>商品明細</h3>
+<button id="add" type="button">＋ 明細を追加</button>
+</div>
+<p class="note">商品名 / 数量 / 金額（円）</p>
+<div id="items">
+</div>
+<label>読み取りテキスト・メモ<textarea id="notes" rows="5">
+</textarea>
+</label>
+<button id="save" class="primary wide" type="submit">レシートを保存 ↗</button>
+</form>
+</section>
+<section class="history">
+<div class="heading">
+<h2>
+<small>03 / HISTORY</small>保存済みレシート</h2>
+<button id="refresh">更新 ↻</button>
+</div>
+<p class="note">最新100件。レシートをタップすると明細が開きます。</p>
+<div id="list">
+</div>
+</section>
+</main>
+<dialog id="dialog">
+<div class="heading">
+<h2>接続設定</h2>
+<button id="close" aria-label="閉じる">×</button>
+</div>
+<p>アプリのパスワードを入力してください。</p>
+<form id="login">
+<label>パスワード<input id="password" type="password" autocomplete="current-password" required>
+</label>
+<button class="primary wide">接続する</button>
+</form>
+</dialog>
+<div id="toast" role="status" aria-live="polite" hidden>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js">
+</script>
+<script type="module" src="/app.js">
+</script>
+</body>
+</html>

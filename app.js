@@ -42,10 +42,8 @@ function parse(text) {
 }
 $('ocr').onclick = async () => {
   if (!selected || busy) return; lock(true); $('progress').textContent = '読み取りを準備しています…';
-  let worker;
   try { $('progress').textContent = 'Geminiでレシートを解析しています…'; const {result:r} = await api('POST', {image:await imagePayload()}, '/api/analyze'); $('merchant').value=r.merchant_name||''; $('date').value=r.purchase_date||''; $('total').value=r.total_amount??''; $('notes').value=r.notes||''; $('items').replaceChildren(); (r.items||[]).forEach(addItem); if (!(r.items||[]).length) addItem(); $('review').hidden=false; $('review').scrollIntoView({behavior:'smooth'}); toast('Geminiの読み取りが完了しました。内容を確認してください。'); }
   catch (error) { toast(error.message || 'Geminiの読み取りに失敗しました。手入力をご利用ください。'); $('manual').click(); }
-  catch { toast('読み取れませんでした。画像を選び直すか手入力してください。'); }
   finally { $('progress').textContent = ''; lock(false); }
 };
 async function imagePayload() {
@@ -66,7 +64,6 @@ async function load() {
   try { const {receipts} = await api(); $('status').textContent='接続済み'; $('list').innerHTML=receipts.length ? receipts.map(r=>`<details><summary><div><b>${escape(r.merchant_name || '名称未設定')}</b><small>${escape(r.purchase_date || '日付未設定')}</small></div><strong>${money(r.total_amount)}</strong></summary><div class="detail">${(r.items||[]).map(i=>`<p>${escape(i.name)} × ${escape(i.quantity)} <b>${money(i.amount)}</b></p>`).join('') || '<p>明細なし</p>'}${/^https:\/\//.test(r.image_url || '') ? `<a href="${escape(r.image_url)}" target="_blank" rel="noopener noreferrer">レシート画像を見る ↗</a>` : ''}<pre>${escape(r.notes)}</pre></div></details>`).join('') : '<p class="empty">まだレシートがありません。</p>'; }
   catch(error) { $('status').textContent='未接続'; $('list').textContent=error.message; } finally { $('refresh').disabled=false; }
 }
-$('choose').onclick=()=>$('file').click(); $('camera').onclick=()=>$('cameraFile').click();
 for(const id of ['file','cameraFile']) $(id).onchange=e=>setFile(e.target.files[0]);
 $('drop').ondragover=e=>e.preventDefault(); $('drop').ondrop=e=>{e.preventDefault();setFile(e.dataTransfer.files[0]);};
 $('manual').onclick=()=>{$('review').hidden=false;$('review').scrollIntoView({behavior:'smooth'});};
