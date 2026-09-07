@@ -5,7 +5,7 @@ const money = n => `¥${Number(n || 0).toLocaleString('ja-JP')}`;
 function toast(text) { $('toast').textContent = text; $('toast').hidden = false; clearTimeout(timer); timer = setTimeout(() => $('toast').hidden = true, 7000); }
 function lock(value) { busy = value; for (const id of ['choose','camera','manual','save','add']) $(id).disabled = value; $('ocr').disabled = value || !selected; }
 async function api(method = 'GET', body) {
-  const response = await fetch('/api/receipts', { method, headers: { 'Content-Type':'application/json', 'x-app-password':sessionStorage.getItem('reci.password') || '' }, body: body ? JSON.stringify(body) : undefined });
+  const response = await fetch('/api/receipts', { method, headers: { 'Content-Type':'application/json', 'x-app-password':localStorage.getItem('reci.password') || '' }, body: body ? JSON.stringify(body) : undefined });
   const data = await response.json().catch(() => ({error:'APIを利用できません。npm run dev またはVercelで開いてください。'}));
   if (!response.ok) throw new Error(data.error || '通信に失敗しました'); return data;
 }
@@ -66,6 +66,6 @@ $('choose').onclick=()=>$('file').click(); $('camera').onclick=()=>$('cameraFile
 for(const id of ['file','cameraFile']) $(id).onchange=e=>setFile(e.target.files[0]);
 $('drop').ondragover=e=>e.preventDefault(); $('drop').ondrop=e=>{e.preventDefault();setFile(e.dataTransfer.files[0]);};
 $('manual').onclick=()=>{$('review').hidden=false;$('review').scrollIntoView({behavior:'smooth'});};
-$('add').onclick=()=>addItem(); $('refresh').onclick=load; $('settings').onclick=()=>{$('password').value=sessionStorage.getItem('reci.password')||'';$('dialog').showModal();}; $('close').onclick=()=>$('dialog').close();
-$('login').onsubmit=e=>{e.preventDefault();sessionStorage.setItem('reci.password',$('password').value);$('dialog').close();load();};
+$('add').onclick=()=>addItem(); $('refresh').onclick=load; $('settings').onclick=()=>{$('password').value=localStorage.getItem('reci.password')||'';$('dialog').showModal();}; $('close').onclick=()=>$('dialog').close();
+$('login').onsubmit=e=>{e.preventDefault();localStorage.setItem('reci.password',$('password').value);$('dialog').close();load();};
 load();
